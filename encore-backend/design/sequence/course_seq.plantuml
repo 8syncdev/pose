@@ -1,0 +1,708 @@
+@startuml Course Service
+
+actor "End User" as EU
+participant "User Interface" as UI
+participant "API Gateway" as AG
+participant "CourseController" as CC
+participant "CourseService" as CS
+participant "AuthMiddleware" as AM
+participant "PermissionChecker" as PC
+participant "CacheService" as CacheS
+database "Course Model" as CM
+database "Chapter Model" as CHM
+database "Lesson Model" as LM
+database "UserEnrollment Model" as UEM
+database "Database" as DB
+
+note right of CC
+  Controller:
+  - Handles HTTP requests
+  - Manages authentication and permissions
+  - Calls appropriate service methods
+end note
+
+note right of CS
+  Service:
+  - Contains business logic
+  - Interacts with models and cache
+  - Formats data for output
+end note
+
+note right of CM
+  Course Model:
+  - Defines data structure for courses
+end note
+
+note right of CHM
+  Chapter Model:
+  - Defines data structure for chapters
+end note
+
+note right of LM
+  Lesson Model:
+  - Defines data structure for lessons
+end note
+
+note right of UEM
+  UserEnrollment Model:
+  - Defines data structure for user enrollments
+end note
+
+note over CC, CS
+  Schema:
+  - Defines input/output structures for API
+  - Used for request/response validation
+end note
+
+== Get All Courses ==
+EU -> UI : Request all courses
+UI -> AG : GET /courses
+AG -> CC : get_all(page, per_page, filters)
+activate CC
+CC -> AM : check_authentication()
+activate AM
+note right
+  Allows anonymous users
+end note
+AM --> CC : authentication result
+deactivate AM
+CC -> CacheS : get_cached_courses(filters)
+activate CacheS
+alt cache hit
+    CacheS --> CC : return cached courses
+else cache miss
+    CacheS --> CC : cache miss
+    CC -> CS : get_courses(filters)
+    activate CS
+    CS -> CM : filter(filters).order_by(created_at)
+    activate CM
+    CM -> DB : Query courses
+    DB --> CM : Courses data
+    CM --> CS : return courses
+    deactivate CM
+    CS -> CS : format_course_data(courses)
+    CS --> CC : return formatted courses
+    deactivate CS
+    CC -> CacheS : cache_courses(formatted_courses, filters)
+    CacheS --> CC : caching confirmed
+end
+deactivate CacheS
+CC -> CC : paginate_results(courses, page, per_page)
+CC --> AG : return PaginatedResponse[CourseOutputSchema]
+AG --> UI : 200 OK with paginated response
+UI --> EU : Display list of courses
+deactivate CC
+
+== Get Course By ID ==
+EU -> UI : Request course details
+UI -> AG : GET /courses/{id}
+AG -> CC : get_course_by_id(course_id)
+activate CC
+CC -> AM : check_authentication()
+activate AM
+note right
+  Allows anonymous users
+end note
+AM --> CC : authentication result
+deactivate AM
+CC -> CacheS : get_cached_course(course_id)
+activate CacheS
+alt cache hit
+    CacheS --> CC : return cached course
+else cache miss
+    CacheS --> CC : cache miss
+    CC -> CS : get_course_content_json_by_id(course_id)
+    activate CS
+    CS -> CM : get(pk=course_id)
+    activate CM
+    CM -> DB : Query course
+    DB --> CM : Course data
+    CM --> CS : return course
+    deactivate CM
+    alt course not found
+        CS --> CC : raise CourseNotFoundError
+        CC --> AG : return 404 Not Found
+        AG --> UI : 404 Not Found
+        UI --> EU : Display error message
+    else course found
+        CS -> CS : format_course_data(course)
+        CS --> CC : return formatted course
+    end
+    deactivate CS
+    CC -> CacheS : cache_course(formatted_course)
+    CacheS --> CC : caching confirmed
+end
+deactivate CacheS
+CC --> AG : return CourseDetailOutputSchema
+AG --> UI : 200 OK with course details
+UI --> EU : Display course details
+deactivate CC
+
+== Get Chapters of Course ==
+EU -> UI : Request course chapters
+UI -> AG : GET /courses/{id}/chapters
+AG -> CC : get_chapters_of_course(course_id, page, per_page)
+activate CC
+CC -> AM : check_authentication()
+activate AM
+note right
+  Requires authenticated user
+end note
+AM --> CC : authentication result
+deactivate AM
+alt not authenticated
+    CC --> AG : return 401 Unauthorized
+    AG --> UI : 401 Unauthorized
+    UI --> EU : Display error message
+else authenticated
+    CC -> CacheS : get_cached_chapters(course_id)
+    activate CacheS
+    alt cache hit
+        CacheS --> CC : return cached chapters
+    else cache miss
+        CacheS --> CC : cache miss
+        CC -> CS : get_chapters_of_course(course_id)
+        activate CS
+        CS -> CHM : filter(course_id=course_id).order_by(order)
+        activate CHM
+        CHM -> DB : Query chapters
+        DB --> CHM : Chapters data
+        CHM --> CS : return chapters
+        deactivate CHM
+        CS -> CS : format_chapter_data(chapters)
+        CS --> CC : return formatted chapters
+        deactivate CS
+        CC -> CacheS : cache_chapters(formatted_chapters, course_id)
+        CacheS --> CC : caching confirmed
+    end
+    deactivate CacheS
+    CC -> CC : paginate_results(chapters, page, per_page)
+    CC --> AG : return PaginatedResponse[ChapterOutputSchema]
+    AG --> UI : 200 OK with paginated response
+    UI --> EU : Display list of chapters
+end
+deactivate CC
+
+== Get Lessons of Chapter ==
+EU -> UI : Request chapter lessons
+UI -> AG : GET /chapters/{id}/lessons
+AG -> CC : get_lessons_of_chapter(chapter_id, page, per_page)
+activate CC
+CC -> AM : check_authentication()
+activate AM
+note right
+  Requires authenticated user
+end note
+AM --> CC : authentication result
+deactivate AM
+alt not authenticated
+    CC --> AG : return 401 Unauthorized
+    AG --> UI : 401 Unauthorized
+    UI --> EU : Display error message
+else authenticated
+    CC -> CacheS : get_cached_lessons(chapter_id)
+    activate CacheS
+    alt cache hit
+        CacheS --> CC : return cached lessons
+    else cache miss
+        CacheS --> CC : cache miss
+        CC -> CS : get_lessons_of_chapter(chapter_id, user)
+        activate CS
+        CS -> LM : filter(chapter_id=chapter_id).order_by(order)
+        activate LM
+        LM -> DB : Query lessons
+        DB --> LM : Lessons data
+        LM --> CS : return lessons
+        deactivate LM
+        CS -> UEM : get_user_enrollment(user, lesson.course)
+        activate UEM
+        UEM -> DB : Query user enrollment
+        DB --> UEM : User enrollment data
+        UEM --> CS : return user_enrollment
+        deactivate UEM
+        CS -> CS : filter_lessons_by_enrollment(lessons, user_enrollment)
+        CS -> CS : format_lesson_data(filtered_lessons)
+        CS --> CC : return formatted lessons
+        deactivate CS
+        CC -> CacheS : cache_lessons(formatted_lessons, chapter_id)
+        CacheS --> CC : caching confirmed
+    end
+    deactivate CacheS
+    CC -> CC : paginate_results(lessons, page, per_page)
+    CC --> AG : return PaginatedResponse[LessonOutputSchema]
+    AG --> UI : 200 OK with paginated response
+    UI --> EU : Display list of lessons
+end
+deactivate CC
+
+== Get Lesson Content ==
+EU -> UI : Request lesson content
+UI -> AG : GET /lessons/{id}/content
+AG -> CC : get_lesson_content(lesson_id)
+activate CC
+CC -> AM : check_authentication()
+activate AM
+note right
+  Requires authenticated user
+end note
+AM --> CC : authentication result
+deactivate AM
+alt not authenticated
+    CC --> AG : return 401 Unauthorized
+    AG --> UI : 401 Unauthorized
+    UI --> EU : Display error message
+else authenticated
+    CC -> PC : check_permission("view_lesson_content")
+    activate PC
+    PC --> CC : permission result
+    deactivate PC
+    alt no permission
+        CC --> AG : return 403 Forbidden
+        AG --> UI : 403 Forbidden
+        UI --> EU : Display error message
+    else has permission
+        CC -> CacheS : get_cached_lesson_content(lesson_id)
+        activate CacheS
+        alt cache hit
+            CacheS --> CC : return cached lesson content
+        else cache miss
+            CacheS --> CC : cache miss
+            CC -> CS : get_lesson_content(lesson_id, user)
+            activate CS
+            CS -> LM : get(pk=lesson_id)
+            activate LM
+            LM -> DB : Query lesson
+            DB --> LM : Lesson data
+            LM --> CS : return lesson
+            deactivate LM
+            alt lesson not found
+                CS --> CC : raise LessonNotFoundError
+                CC --> AG : return 404 Not Found
+                AG --> UI : 404 Not Found
+                UI --> EU : Display error message
+            else lesson found
+                CS -> UEM : get_user_enrollment(user, lesson.course)
+                activate UEM
+                UEM -> DB : Query user enrollment
+                DB --> UEM : User enrollment data
+                UEM --> CS : return user_enrollment
+                deactivate UEM
+                CS -> CS : check_lesson_access(lesson, user_enrollment)
+                alt access granted
+                    CS -> CS : format_lesson_content(lesson)
+                    CS --> CC : return LessonContentOutputSchema
+                else access denied
+                    CS --> CC : raise LessonAccessDeniedError
+                    CC --> AG : return 403 Forbidden
+                    AG --> UI : 403 Forbidden
+                    UI --> EU : Display error message
+                end
+            end
+            deactivate CS
+            CC -> CacheS : cache_lesson_content(formatted_content, lesson_id)
+            CacheS --> CC : caching confirmed
+        end
+        deactivate CacheS
+        CC --> AG : return lesson content or error response
+        AG --> UI : 200 OK with lesson content or error
+        UI --> EU : Display lesson content or error message
+    end
+end
+deactivate CC
+
+== Enroll Course ==
+EU -> UI : Request course enrollment
+UI -> AG : POST /courses/{id}/enroll
+AG -> CC : enroll_course(course_id, is_trial)
+activate CC
+CC -> AM : check_authentication()
+activate AM
+note right
+  Requires authenticated user
+end note
+AM --> CC : authentication result
+deactivate AM
+alt not authenticated
+    CC --> AG : return 401 Unauthorized
+    AG --> UI : 401 Unauthorized
+    UI --> EU : Display error message
+else authenticated
+    CC -> PC : check_permission("enroll_course")
+    activate PC
+    PC --> CC : permission result
+    deactivate PC
+    alt no permission
+        CC --> AG : return 403 Forbidden
+        AG --> UI : 403 Forbidden
+        UI --> EU : Display error message
+    else has permission
+        CC -> CS : enroll_course(user, course_id, is_trial)
+        activate CS
+        CS -> CM : get(pk=course_id)
+        activate CM
+        CM -> DB : Query course
+        DB --> CM : Course data
+        CM --> CS : return course
+        deactivate CM
+        alt course not found
+            CS --> CC : raise CourseNotFoundError
+            CC --> AG : return 404 Not Found
+            AG --> UI : 404 Not Found
+            UI --> EU : Display error message
+        else course found
+            CS -> UEM : get_or_create(user=user, course=course)
+            activate UEM
+            UEM -> DB : Query or create user enrollment
+            DB --> UEM : User enrollment data
+            UEM --> CS : return user_enrollment, created
+            deactivate UEM
+            alt created or status is CANCELLED
+                CS -> CS : set_enrollment_status(user_enrollment, is_trial)
+                CS -> UEM : save()
+                activate UEM
+                UEM -> DB : Save enrollment
+                DB --> UEM : Save confirmed
+                UEM --> CS : save confirmed
+                deactivate UEM
+                CS -> CacheS : invalidate_user_enrollments_cache(user.id)
+                activate CacheS
+                CacheS --> CS : cache invalidated
+                deactivate CacheS
+            else already enrolled and not cancelled
+                CS --> CC : raise AlreadyEnrolledError
+                CC --> AG : return 400 Bad Request
+                AG --> UI : 400 Bad Request
+                UI --> EU : Display error message
+            end
+            CS --> CC : return EnrollmentOutputSchema
+        end
+        deactivate CS
+        CC --> AG : return enrollment response or error
+        AG --> UI : 200 OK with enrollment details or error
+        UI --> EU : Display enrollment confirmation or error message
+    end
+end
+deactivate CC
+
+== Get User Enrollments ==
+EU -> UI : Request user enrollments
+UI -> AG : GET /users/enrollments
+AG -> CC : get_user_enrollments(page, per_page)
+activate CC
+CC -> AM : check_authentication()
+activate AM
+note right
+  Requires authenticated user
+end note
+AM --> CC : authentication result
+deactivate AM
+alt not authenticated
+    CC --> AG : return 401 Unauthorized
+    AG --> UI : 401 Unauthorized
+    UI --> EU : Display error message
+else authenticated
+    CC -> CacheS : get_cached_user_enrollments(user.id)
+    activate CacheS
+    alt cache hit
+        CacheS --> CC : return cached enrollments
+    else cache miss
+        CacheS --> CC : cache miss
+        CC -> CS : get_user_enrollments(user)
+        activate CS
+        CS -> UEM : filter(user=user).select_related('course')
+        activate UEM
+        UEM -> DB : Query user enrollments
+        DB --> UEM : User enrollments data
+        UEM --> CS : return user enrollments
+        deactivate UEM
+        CS -> CS : format_enrollment_data(enrollments)
+        CS --> CC : return formatted enrollments
+        deactivate CS
+        CC -> CacheS : cache_user_enrollments(formatted_enrollments, user.id)
+        CacheS --> CC : caching confirmed
+    end
+    deactivate CacheS
+    CC -> CC : paginate_results(enrollments, page, per_page)
+    CC --> AG : return PaginatedResponse[EnrollmentOutputSchema]
+    AG --> UI : 200 OK with paginated response
+    UI --> EU : Display list of enrollments
+end
+deactivate CC
+
+== Get All User Enrollments (Admin) ==
+EU -> UI : Request all user enrollments
+UI -> AG : GET /admin/enrollments
+AG -> CC : get_all_user_enrollments(page, per_page, filters)
+activate CC
+CC -> AM : check_authentication()
+activate AM
+note right
+  Requires authenticated admin user
+end note
+AM --> CC : authentication result
+deactivate AM
+alt not authenticated
+    CC --> AG : return 401 Unauthorized
+    AG --> UI : 401 Unauthorized
+    UI --> EU : Display error message
+else authenticated
+    CC -> PC : check_permission("view_all_enrollments")
+    activate PC
+    PC --> CC : permission result
+    deactivate PC
+    alt no permission
+        CC --> AG : return 403 Forbidden
+        AG --> UI : 403 Forbidden
+        UI --> EU : Display error message
+    else has permission
+        CC -> CacheS : get_cached_all_enrollments(filters)
+        activate CacheS
+        alt cache hit
+            CacheS --> CC : return cached all enrollments
+        else cache miss
+            CacheS --> CC : cache miss
+            CC -> CS : get_all_user_enrollments(filters)
+            activate CS
+            CS -> UEM : filter(filters).select_related('user', 'course')
+            activate UEM
+            UEM -> DB : Query all enrollments
+            DB --> UEM : All enrollments data
+            UEM --> CS : return all enrollments
+            deactivate UEM
+            CS -> CS : format_enrollment_data(enrollments)
+            CS --> CC : return formatted enrollments
+            deactivate CS
+            CC -> CacheS : cache_all_enrollments(formatted_enrollments, filters)
+            CacheS --> CC : caching confirmed
+        end
+        deactivate CacheS
+        CC -> CC : paginate_results(enrollments, page, per_page)
+        CC --> AG : return PaginatedResponse[AdminEnrollmentOutputSchema]
+        AG --> UI : 200 OK with paginated response
+        UI --> EU : Display list of all enrollments
+    end
+end
+deactivate CC
+
+== Delete All User Enrollments (Admin) ==
+EU -> UI : Request delete all enrollments
+UI -> AG : DELETE /admin/enrollments
+AG -> CC : delete_all_user_enrollments()
+activate CC
+CC -> AM : check_authentication()
+activate AM
+note right
+  Requires authenticated admin user
+end note
+AM --> CC : authentication result
+deactivate AM
+alt not authenticated
+    CC --> AG : return 401 Unauthorized
+    AG --> UI : 401 Unauthorized
+    UI --> EU : Display error message
+else authenticated
+    CC -> PC : check_permission("delete_all_enrollments")
+    activate PC
+    PC --> CC : permission result
+    deactivate PC
+    alt no permission
+        CC --> AG : return 403 Forbidden
+        AG --> UI : 403 Forbidden
+        UI --> EU : Display error message
+    else has permission
+        CC -> CS : delete_all_user_enrollments()
+        activate CS
+        CS -> UEM : all().delete()
+        activate UEM
+        UEM -> DB : Delete all enrollments
+        DB --> UEM : Deletion confirmed
+        UEM --> CS : deletion confirmed
+        deactivate UEM
+        CS -> CacheS : invalidate_all_enrollment_caches()
+        activate CacheS
+        CacheS --> CS : all caches invalidated
+        deactivate CacheS
+        CS --> CC : return deletion message
+        deactivate CS
+        CC --> AG : return DeletionResponseSchema
+        AG --> UI : 200 OK with deletion confirmation
+        UI --> EU : Display deletion confirmation
+    end
+end
+deactivate CC
+
+== Create or Update Course Content JSON (Staff) ==
+EU -> UI : Submit course content
+UI -> AG : PUT /courses/{id}/content
+AG -> CC : create_or_update_content_json_course(course_id, content_json)
+activate CC
+CC -> AM : check_authentication()
+activate AM
+note right
+  Requires authenticated staff user
+end note
+AM --> CC : authentication result
+deactivate AM
+alt not authenticated
+    CC --> AG : return 401 Unauthorized
+    AG --> UI : 401 Unauthorized
+    UI --> EU : Display error message
+else authenticated
+    CC -> PC : check_permission("edit_course_content")
+    activate PC
+    PC --> CC : permission result
+    deactivate PC
+    alt no permission
+        CC --> AG : return 403 Forbidden
+        AG --> UI : 403 Forbidden
+        UI --> EU : Display error message
+    else has permission
+        CC -> CS : create_or_update_content_json_course(course_id, content_json)
+        activate CS
+        CS -> CM : get(pk=course_id)
+        activate CM
+        CM -> DB : Query course
+        DB --> CM : Course data
+        CM --> CS : return course
+        deactivate CM
+        alt course not found
+            CS --> CC : raise CourseNotFoundError
+            CC --> AG : return 404 Not Found
+            AG --> UI : 404 Not Found
+            UI --> EU : Display error message
+        else course found
+            CS -> CS : validate_content_json(content_json)
+            alt invalid content
+                CS --> CC : raise InvalidContentError
+                CC --> AG : return 400 Bad Request
+                AG --> UI : 400 Bad Request
+                UI --> EU : Display error message
+            else valid content
+                CS -> CS : update_course_content(course, content_json)
+                CS -> CM : save()
+                activate CM
+                CM -> DB : Save course content
+                DB --> CM : Save confirmed
+                CM --> CS : save confirmed
+                deactivate CM
+                CS -> CacheS : invalidate_course_cache(course_id)
+                activate CacheS
+                CacheS --> CS : course cache invalidated
+                deactivate CacheS
+                CS -> CacheS : invalidate_related_caches(course_id)
+                activate CacheS
+                CacheS --> CS : related caches invalidated
+                deactivate CacheS
+                CS --> CC : return UpdatedCourseOutputSchema
+            end
+        end
+        deactivate CS
+        CC --> AG : return updated course response or error
+        AG --> UI : 200 OK with updated course details or error
+        UI --> EU : Display updated course confirmation or error message
+    end
+end
+deactivate CC
+
+== Create New Course (Staff) ==
+EU -> UI : Submit new course
+UI -> AG : POST /courses
+AG -> CC : create_course(course_data)
+activate CC
+CC -> AM : check_authentication()
+activate AM
+note right
+  Requires authenticated staff user
+end note
+AM --> CC : authentication result
+deactivate AM
+alt not authenticated
+    CC --> AG : return 401 Unauthorized
+    AG --> UI : 401 Unauthorized
+    UI --> EU : Display error message
+else authenticated
+    CC -> PC : check_permission("create_course")
+    activate PC
+    PC --> CC : permission result
+    deactivate PC
+    alt no permission
+        CC --> AG : return 403 Forbidden
+        AG --> UI : 403 Forbidden
+        UI --> EU : Display error message
+    else has permission
+        CC -> CS : create_course(course_data)
+        activate CS
+        CS -> CM : create(**course_data)
+        activate CM
+        CM -> DB : Create new course
+        DB --> CM : New course data
+        CM --> CS : return new course
+        deactivate CM
+        CS -> CS : format_course_data(new_course)
+        CS --> CC : return formatted new course
+        deactivate CS
+        CC --> AG : return NewCourseOutputSchema
+        AG --> UI : 201 Created with new course details
+        UI --> EU : Display new course confirmation
+    end
+end
+deactivate CC
+
+== Update Course (Staff) ==
+EU -> UI : Submit course update
+UI -> AG : PUT /courses/{id}
+AG -> CC : update_course(course_id, course_data)
+activate CC
+CC -> AM : check_authentication()
+activate AM
+note right
+  Requires authenticated staff user
+end note
+AM --> CC : authentication result
+deactivate AM
+alt not authenticated
+    CC --> AG : return 401 Unauthorized
+    AG --> UI : 401 Unauthorized
+    UI --> EU : Display error message
+else authenticated
+    CC -> PC : check_permission("edit_course")
+    activate PC
+    PC --> CC : permission result
+    deactivate PC
+    alt no permission
+        CC --> AG : return 403 Forbidden
+        AG --> UI : 403 Forbidden
+        UI --> EU : Display error message
+    else has permission
+        CC -> CS : update_course(course_id, course_data)
+        activate CS
+        CS -> CM : get(pk=course_id)
+        activate CM
+        CM -> DB : Query course
+        DB --> CM : Course data
+        CM --> CS : return course
+        deactivate CM
+        alt course not found
+            CS --> CC : raise CourseNotFoundError
+            CC --> AG : return 404 Not Found
+            AG --> UI : 404 Not Found
+            UI --> EU : Display error message
+        else course found
+            CS -> CS : update_course_fields(course, course_data)
+            CS -> CM : save()
+            activate CM
+            CM -> DB : Save updated course
+            DB --> CM : Save confirmed
+            CM --> CS : save confirmed
+            deactivate CM
+            CS -> CacheS : invalidate_course_cache(course_id)
+            activate CacheS
+            CacheS --> CS : course cache invalidated
+            deactivate CacheS
+            CS --> CC : return UpdatedCourseOutputSchema
+        end
+        deactivate CS
+        CC --> AG : return updated course response or error
+        AG --> UI : 200 OK with updated course details or error
+        UI --> EU : Display updated course confirmation or error message
+@enduml

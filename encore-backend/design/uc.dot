@@ -1,0 +1,69 @@
+digraph UseCaseDiagram {
+    node [shape=ellipse, style=filled, fillcolor=lightyellow, fontname=Helvetica, fontsize=10];
+    edge [fontname=Helvetica, fontsize=10];
+
+    // Define actors
+    actorUser [label="User", shape=ellipse, style=filled, fillcolor=lightblue];
+    actorInstructor [label="Instructor", shape=ellipse, style=filled, fillcolor=lightcoral];
+    actorAdmin [label="Admin", shape=ellipse, style=filled, fillcolor=lightgreen];
+
+    // Define use cases related to User
+    useCaseLogin [label="Login"];
+    useCaseRegister [label="Register"];
+    useCaseViewCourses [label="View Courses"];
+    useCaseEnrollInCourse [label="Enroll in Course"];
+    useCaseSubmitAssignment [label="Submit Assignment"];
+    useCaseViewGrades [label="View Grades"];
+    useCaseMakePayment [label="Make Payment"];
+    useCaseManageProfile [label="Manage Profile"];
+    useCaseViewNotifications [label="View Notifications"];
+
+    // Define use cases related to Instructor
+    useCaseCreateCourse [label="Create Course"];
+    useCaseAssignRoles [label="Assign Roles"];
+    useCaseUpdateCourseContent [label="Update Course Content"];
+    useCaseReviewSubmissions [label="Review Submissions"];
+    useCaseApproveReviews [label="Approve Reviews"];
+    useCaseRejectReviews [label="Reject Reviews"];
+    
+    // Define use cases related to Admin
+    useCaseManageUsers [label="Manage Users"];
+    useCaseManageCourses [label="Manage Courses"];
+    useCaseViewReports [label="View Reports"];
+    useCaseManageNotifications [label="Manage Notifications"];
+    
+    // Relationships between actors and use cases
+    actorUser -> useCaseLogin;
+    actorUser -> useCaseRegister;
+    actorUser -> useCaseViewCourses;
+    actorUser -> useCaseEnrollInCourse;
+    actorUser -> useCaseSubmitAssignment;
+    actorUser -> useCaseViewGrades;
+    actorUser -> useCaseMakePayment;
+    actorUser -> useCaseManageProfile;
+    actorUser -> useCaseViewNotifications;
+
+    actorInstructor -> useCaseCreateCourse;
+    actorInstructor -> useCaseAssignRoles;
+    actorInstructor -> useCaseUpdateCourseContent;
+    actorInstructor -> useCaseReviewSubmissions;
+    actorInstructor -> useCaseApproveReviews;
+    actorInstructor -> useCaseRejectReviews;
+    
+    actorAdmin -> useCaseManageUsers;
+    actorAdmin -> useCaseManageCourses;
+    actorAdmin -> useCaseViewReports;
+    actorAdmin -> useCaseManageNotifications;
+
+    // Include relationships
+    useCaseEnrollInCourse -> useCaseViewCourses [label="includes", style=dotted, arrowhead=vee];
+    useCaseSubmitAssignment -> useCaseViewCourses [label="includes", style=dotted, arrowhead=vee];
+    useCaseViewGrades -> useCaseSubmitAssignment [label="includes", style=dotted, arrowhead=vee];
+    useCaseMakePayment -> useCaseEnrollInCourse [label="includes", style=dotted, arrowhead=vee];
+
+    // Extend relationships
+    useCaseLogin -> useCaseManageProfile [label="extends", style=dotted, arrowhead=vee];
+    useCaseManageCourses -> useCaseCreateCourse [label="extends", style=dotted, arrowhead=vee];
+    useCaseReviewSubmissions -> useCaseApproveReviews [label="extends", style=dotted, arrowhead=vee];
+    useCaseReviewSubmissions -> useCaseRejectReviews [label="extends", style=dotted, arrowhead=vee];
+}

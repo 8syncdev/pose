@@ -1,0 +1,81 @@
+@startuml
+actor User
+participant "Frontend" as FE
+participant "API" as API
+participant "UserService" as US
+participant "CourseService" as CS
+participant "PaymentService" as PS
+participant "PermissionService" as PMS
+database "Database" as DB
+
+== User Registration and Authentication ==
+User -> FE: Register/Login
+FE -> API: Send credentials
+API -> US: Validate user
+US -> DB: Check/Store user data
+DB --> US: User data
+US --> API: Authentication result
+API --> FE: Auth token
+FE --> User: Login success/failure
+
+== Course Enrollment ==
+User -> FE: Request course enrollment
+FE -> API: Enroll request (user, course_id, is_trial)
+note right
+  Controller should check is_trial
+  before calling enroll_course()
+end note
+API -> CS: enroll_course(user, course_id, is_trial)
+CS -> DB: Get or create UserEnrollment
+alt New enrollment or cancelled status
+    CS -> DB: Update enrollment status and expiration
+else Existing enrollment
+    CS -> DB: Check current status
+end
+DB --> CS: Enrollment data
+CS --> API: Enrollment result
+API --> FE: Enrollment status
+FE --> User: Enrollment confirmation
+
+== Payment Processing ==
+User -> FE: Initiate payment
+FE -> API: Payment request
+API -> PS: create_payment_by_user(user_id or user)
+PS -> DB: Get user enrollments (ENROLLED, TRIAL, EXPIRED)
+DB --> PS: Enrollment data
+PS -> PS: Calculate total amount
+PS -> DB: Create pending payment
+DB --> PS: Payment data
+PS --> API: Payment details
+API --> FE: Payment information
+FE --> User: Payment instructions
+
+User -> FE: Confirm payment
+FE -> API: Payment confirmation
+API -> PS: process_payment()
+PS -> DB: Update payment status
+PS -> DB: Update UserEnrollment status
+DB --> PS: Updated data
+PS --> API: Payment completion status
+API --> FE: Payment result
+FE --> User: Payment confirmation
+
+== Course Access (with Permission Check) ==
+User -> FE: Access course content
+FE -> API: Request course data
+API -> PMS: Check user permissions
+PMS -> DB: Retrieve user roles/permissions
+DB --> PMS: User permissions
+PMS --> API: Access granted/denied
+alt Access granted
+    API -> CS: Get course content
+    CS -> DB: Retrieve course data
+    DB --> CS: Course content
+    CS --> API: Course data
+    API --> FE: Course content
+else Access denied
+    API --> FE: Access denied
+end
+FE --> User: Display course / Error message
+
+@enduml

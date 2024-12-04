@@ -1,0 +1,307 @@
+@startuml Permission Service
+
+actor "End User" as EU
+participant "User Interface" as UI
+participant "API Gateway" as AG
+participant "PermissionController" as PC
+participant "PermissionService" as PS
+participant "AuthMiddleware" as AM
+participant "PermissionChecker" as PChecker
+participant "User Model" as UM
+participant "Permission Model" as PM
+participant "ContentType Model" as CTM
+database "Database" as DB
+
+note right of AM
+  Checks if user is authenticated and their role (user, staff, admin)
+end note
+
+note right of PChecker
+  Checks user's role and specific permissions
+end note
+
+== Get All Permissions of Users (Admin Only) ==
+EU -> UI : Request all permissions
+UI -> AG : GET /admin/permissions
+AG -> PC : get_all_permissions_of_users()
+activate PC
+PC -> AM : check_authentication()
+activate AM
+note right
+  Checks if user is authenticated and is admin
+end note
+AM --> PC : authentication result
+deactivate AM
+alt not authenticated or not admin
+    PC --> AG : return 403 Forbidden
+    AG --> UI : 403 Forbidden
+    UI --> EU : Display error message
+else authenticated as admin
+    PC -> PS : get_all_permissions_of_users()
+    activate PS
+    PS -> UM : get all users
+    activate UM
+    UM -> DB : Query users
+    DB --> UM : User data
+    UM --> PS : return all users
+    deactivate UM
+    loop for each user
+        PS -> UM : get_all_permissions()
+        activate UM
+        UM -> DB : Query user permissions
+        DB --> UM : Permission data
+        UM --> PS : return user permissions
+        deactivate UM
+    end
+    PS --> PC : return user permissions data
+    deactivate PS
+    PC -> PC : paginate_results(permissions_data)
+    PC --> AG : return PaginatedResponse[PermissionSchema]
+    AG --> UI : Permissions data
+    UI --> EU : Display permissions
+end
+deactivate PC
+
+== Add Permission to User (Admin Only) ==
+EU -> UI : Add permission to user
+UI -> AG : POST /admin/users/{username}/permissions
+AG -> PC : add_permission_to_user(username, permission)
+activate PC
+PC -> AM : check_authentication()
+activate AM
+note right
+  Checks if user is authenticated and is admin
+end note
+AM --> PC : authentication result
+deactivate AM
+alt not authenticated or not admin
+    PC --> AG : return 403 Forbidden
+    AG --> UI : 403 Forbidden
+    UI --> EU : Display error message
+else authenticated as admin
+    PC -> PS : add_permission_to_user(username, permission)
+    activate PS
+    PS -> UM : get user by username
+    activate UM
+    UM -> DB : Query user
+    DB --> UM : User data
+    alt user not found
+        UM --> PS : return None
+        PS --> PC : return UserNotFoundError
+        PC --> AG : User not found error
+        AG --> UI : User not found
+        UI --> EU : Display error message
+    else user found
+        UM --> PS : return user
+        deactivate UM
+        PS -> PM : get permission by codename
+        activate PM
+        PM -> DB : Query permission
+        DB --> PM : Permission data
+        alt permission not found
+            PM --> PS : return None
+            PS --> PC : return PermissionNotFoundError
+            PC --> AG : Permission not found error
+            AG --> UI : Permission not found
+            UI --> EU : Display error message
+        else permission found
+            PM --> PS : return permission
+            deactivate PM
+            PS -> UM : add permission to user
+            activate UM
+            UM -> DB : Add user permission
+            DB --> UM : Confirmation
+            UM --> PS : permission added
+            deactivate UM
+            PS --> PC : return success message
+            PC --> AG : Success response
+            AG --> UI : Permission added successfully
+            UI --> EU : Display success message
+        end
+    end
+    deactivate PS
+end
+deactivate PC
+
+== Check Permission (Admin or Staff Only) ==
+EU -> UI : Check user permission
+UI -> AG : GET /admin/users/{username}/permissions/{permission}
+AG -> PC : check_permission_data(username, permission)
+activate PC
+PC -> AM : check_authentication()
+activate AM
+note right
+  Checks if user is authenticated and is admin or staff
+end note
+AM --> PC : authentication result
+deactivate AM
+alt not authenticated or not admin/staff
+    PC --> AG : return 403 Forbidden
+    AG --> UI : 403 Forbidden
+    UI --> EU : Display error message
+else authenticated as admin/staff
+    PC -> PS : check_permission(username, permission)
+    activate PS
+    PS -> UM : get user by username
+    activate UM
+    UM -> DB : Query user
+    DB --> UM : User data
+    alt user not found
+        UM --> PS : return None
+        PS --> PC : return UserNotFoundError
+        PC --> AG : User not found error
+        AG --> UI : User not found
+        UI --> EU : Display error message
+    else user found
+        UM --> PS : return user
+        deactivate UM
+        PS -> UM : has_perm(permission)
+        activate UM
+        UM -> DB : Query user permission
+        DB --> UM : Permission data
+        UM --> PS : return permission status
+        deactivate UM
+        PS --> PC : return permission check result
+        PC --> AG : Permission check result
+        AG --> UI : Permission status
+        UI --> EU : Display permission status
+    end
+    deactivate PS
+end
+deactivate PC
+
+== Delete Permission from User (Admin Only) ==
+EU -> UI : Delete user permission
+UI -> AG : DELETE /admin/users/{username}/permissions/{permission}
+AG -> PC : delete_permission_from_user(username, permission)
+activate PC
+PC -> AM : check_authentication()
+activate AM
+note right
+  Checks if user is authenticated and is admin
+end note
+AM --> PC : authentication result
+deactivate AM
+alt not authenticated or not admin
+    PC --> AG : return 403 Forbidden
+    AG --> UI : 403 Forbidden
+    UI --> EU : Display error message
+else authenticated as admin
+    PC -> PS : delete_permission_from_user(username, permission)
+    activate PS
+    PS -> UM : get user by username
+    activate UM
+    UM -> DB : Query user
+    DB --> UM : User data
+    alt user not found
+        UM --> PS : return None
+        PS --> PC : return UserNotFoundError
+        PC --> AG : User not found error
+        AG --> UI : User not found
+        UI --> EU : Display error message
+    else user found
+        UM --> PS : return user
+        deactivate UM
+        PS -> PM : get permission by codename
+        activate PM
+        PM -> DB : Query permission
+        DB --> PM : Permission data
+        alt permission not found
+            PM --> PS : return None
+            PS --> PC : return PermissionNotFoundError
+            PC --> AG : Permission not found error
+            AG --> UI : Permission not found
+            UI --> EU : Display error message
+        else permission found
+            PM --> PS : return permission
+            deactivate PM
+            PS -> UM : remove permission from user
+            activate UM
+            UM -> DB : Remove user permission
+            DB --> UM : Confirmation
+            UM --> PS : permission removed
+            deactivate UM
+            PS --> PC : return success message
+            PC --> AG : Success response
+            AG --> UI : Permission removed successfully
+            UI --> EU : Display success message
+        end
+    end
+    deactivate PS
+end
+deactivate PC
+
+== Create Permission (Admin Only) ==
+EU -> UI : Create new permission
+UI -> AG : POST /admin/permissions
+AG -> PC : create_permission(permission_data)
+activate PC
+PC -> AM : check_authentication()
+activate AM
+note right
+  Checks if user is authenticated and is admin
+end note
+AM --> PC : authentication result
+deactivate AM
+alt not authenticated or not admin
+    PC --> AG : return 403 Forbidden
+    AG --> UI : 403 Forbidden
+    UI --> EU : Display error message
+else authenticated as admin
+    PC -> PS : create_permission(permission_data)
+    activate PS
+    PS -> CTM : get_for_model(User)
+    activate CTM
+    CTM -> DB : Query content type
+    DB --> CTM : Content type data
+    CTM --> PS : return content_type
+    deactivate CTM
+    PS -> PM : create(permission_data, content_type)
+    activate PM
+    PM -> DB : Create new permission
+    DB --> PM : Confirmation
+    PM --> PS : return created permission
+    deactivate PM
+    PS --> PC : return PermissionSchema
+    PC --> AG : New permission data
+    AG --> UI : New permission created
+    UI --> EU : Display success message
+    deactivate PS
+end
+deactivate PC
+
+== Get User Permissions (Authenticated User) ==
+EU -> UI : Request own permissions
+UI -> AG : GET /users/me/permissions
+AG -> PC : get_user_permissions()
+activate PC
+PC -> AM : check_authentication()
+activate AM
+note right
+  Checks if user is authenticated (any role)
+end note
+AM --> PC : authentication result
+deactivate AM
+alt not authenticated
+    PC --> AG : return 401 Unauthorized
+    AG --> UI : 401 Unauthorized
+    UI --> EU : Display error message
+else authenticated
+    PC -> PS : get_user_permissions(current_user)
+    activate PS
+    PS -> UM : get_all_permissions()
+    activate UM
+    UM -> DB : Query user permissions
+    DB --> UM : Permission data
+    UM --> PS : return user permissions
+    deactivate UM
+    PS --> PC : return user permissions data
+    PC -> PC : paginate_results(permissions_data)
+    PC --> AG : return PaginatedResponse[PermissionSchema]
+    AG --> UI : User permissions data
+    UI --> EU : Display user permissions
+    deactivate PS
+end
+deactivate PC
+
+@enduml

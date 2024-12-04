@@ -1,0 +1,14 @@
+digraph G {
+    node [shape=record, style=filled, fillcolor=lightyellow];
+
+    // Define classes
+    ClassA [label="{ClassA|+ attribute1 : Type1\l+ attribute2 : Type2\l|+ method1()\l+ method2()\l}"];
+    ClassB [label="{ClassB|+ attribute1 : Type1\l|+ method1()\l}"];
+    ClassC [label="{ClassC|+ attribute1 : Type1\l|+ method1()\l}"];
+    ClassD [label="{ClassD|+ attribute1 : Type1\l|+ method1()\l}"];
+
+    // Relationships
+    ClassA -> ClassB [arrowhead=diamond, label=" 1..1"]; // Composition
+    ClassA -> ClassC [arrowhead=odiamond, label=" 1..*"]; // Aggregation
+    ClassA -> ClassD [arrowhead=normal, label=" 1..*"]; // Association
+}

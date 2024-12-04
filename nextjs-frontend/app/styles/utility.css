@@ -1,0 +1,171 @@
+@tailwind utilities;
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .glass-effect {
+    @apply bg-[hsl(var(--background)_/_0.8)] backdrop-blur-sm border-[hsl(var(--border)_/_0.5)];
+  }
+
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-[hsl(var(--primary))] to-[hsl(var(--info))];
+  }
+
+  .animate-fade {
+    @apply transition-opacity duration-200;
+  }
+
+  .animate-slide {
+    @apply transition-all duration-200;
+  }
+
+  .hover-scale {
+    @apply hover:scale-105 transition-transform duration-200;
+  }
+
+  .shadow-custom {
+    @apply shadow-lg shadow-[hsl(var(--primary)_/_0.1)];
+  }
+
+  .border-glow {
+    @apply border-2 border-[hsl(var(--primary)_/_0.5)] shadow-[0_0_10px_hsl(var(--primary)_/_0.5)];
+  }
+
+  .text-glow {
+    @apply text-[hsl(var(--primary))] drop-shadow-[0_0_8px_hsl(var(--primary)_/_0.5)];
+  }
+
+  .backdrop-blur {
+    @apply backdrop-blur-md bg-[hsl(var(--background)_/_0.5)];
+  }
+
+  .scrollbar-custom {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--primary)) hsl(var(--muted));
+  }
+
+  .container {
+    @apply mx-auto px-4 sm:px-6 lg:px-8 max-w-full;
+  }
+
+  /* Background gradients using CSS variables */
+  .bg-gradient-purple-blue {
+    @apply bg-gradient-to-t from-[hsl(var(--color-2))] via-[hsl(var(--primary))] to-[hsl(var(--color-4))];
+  }
+
+  .bg-gradient-pink-purple {
+    @apply bg-gradient-to-tr from-[hsl(var(--color-1))] via-[hsl(var(--color-2))] to-[hsl(var(--primary))];
+  }
+
+  .bg-gradient-orange-red {
+    @apply bg-gradient-to-r from-[hsl(var(--warning))] via-[hsl(var(--danger))] to-[hsl(var(--color-1))];
+  }
+
+  .bg-gradient-green-teal {
+    @apply bg-gradient-to-br from-[hsl(var(--success))] via-[hsl(var(--color-5))] to-[hsl(var(--color-3))];
+  }
+
+  /* Text gradients using CSS variables */
+  .text-gradient-purple-blue {
+    @apply bg-clip-text text-transparent bg-gradient-to-t from-[hsl(var(--color-2))] via-[hsl(var(--primary))] to-[hsl(var(--color-4))];
+  }
+
+  .text-gradient-pink-purple {
+    @apply bg-clip-text text-transparent bg-gradient-to-tr from-[hsl(var(--color-1))] via-[hsl(var(--color-2))] to-[hsl(var(--primary))];
+  }
+
+  .text-gradient-orange-red {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-[hsl(var(--warning))] via-[hsl(var(--danger))] to-[hsl(var(--color-1))];
+  }
+
+  .text-gradient-green-teal {
+    @apply bg-clip-text text-transparent bg-gradient-to-br from-[hsl(var(--success))] via-[hsl(var(--color-5))] to-[hsl(var(--color-3))];
+  }
+
+  /* Icon colors using CSS variables */
+  .icon-primary svg {
+    @apply text-[hsl(var(--primary))] stroke-current fill-none;
+  }
+
+  .icon-secondary svg {
+    @apply text-[hsl(var(--secondary))] stroke-current fill-none;
+  }
+
+  .icon-accent svg {
+    @apply text-[hsl(var(--accent))] stroke-current fill-none;
+  }
+
+  .icon-muted svg {
+    @apply text-[hsl(var(--muted))] stroke-current fill-none;
+  }
+
+  /* Additional icon colors using CSS variables */
+  .icon-blue svg {
+    @apply text-[hsl(var(--primary))] stroke-current fill-none;
+  }
+
+  .icon-purple svg {
+    @apply text-[hsl(var(--color-2))] stroke-current fill-none;
+  }
+
+  .icon-green svg {
+    @apply text-[hsl(var(--success))] stroke-current fill-none;
+  }
+
+  .icon-red svg {
+    @apply text-[hsl(var(--danger))] stroke-current fill-none;
+  }
+
+  .icon-orange svg {
+    @apply text-[hsl(var(--warning))] stroke-current fill-none;
+  }
+
+  .icon-yellow svg {
+    @apply text-[hsl(var(--warning))] stroke-current fill-none;
+  }
+
+  .icon-teal svg {
+    @apply text-[hsl(var(--color-3))] stroke-current fill-none;
+  }
+
+  .icon-pink svg {
+    @apply text-[hsl(var(--color-1))] stroke-current fill-none;
+  }
+
+  /* Force stroke-only for all SVG elements */
+  .icon-primary svg *,
+  .icon-secondary svg *,
+  .icon-accent svg *,
+  .icon-muted svg *,
+  .icon-blue svg *,
+  .icon-purple svg *,
+  .icon-green svg *,
+  .icon-red svg *,
+  .icon-orange svg *,
+  .icon-yellow svg *,
+  .icon-teal svg *,
+  .icon-pink svg * {
+    @apply stroke-inherit fill-none;
+  }
+
+  /* Gradient strokes for icons using CSS variables */
+  .icon-gradient-purple-blue svg,
+  .icon-gradient-purple-blue svg * {
+    @apply stroke-[hsl(var(--color-2))] stroke-[2];
+    stroke: url(#gradient-purple-blue);
+  }
+
+  .icon-gradient-orange-red svg,
+  .icon-gradient-orange-red svg * {
+    @apply stroke-[hsl(var(--warning))] stroke-[2];
+    stroke: url(#gradient-orange-red);
+  }
+
+  .icon-gradient-green-teal svg,
+  .icon-gradient-green-teal svg * {
+    @apply stroke-[hsl(var(--success))] stroke-[2];
+    stroke: url(#gradient-green-teal);
+  }
+}

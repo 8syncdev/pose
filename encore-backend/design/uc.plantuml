@@ -1,0 +1,60 @@
+@startuml
+
+left to right direction
+skinparam actorStyle awesome
+
+actor "User" as user
+actor "Instructor" as instructor
+actor "Admin" as admin
+
+rectangle "Online Learning Platform" {
+  usecase "Register" as UC1
+  usecase "Login" as UC2
+  usecase "Browse Courses" as UC3
+  usecase "Enroll in Course" as UC4
+  usecase "View Lessons" as UC5
+  usecase "Complete Exercises" as UC6
+  usecase "Submit Reviews" as UC7
+  usecase "Make Payment" as UC8
+  usecase "Manage Subscription" as UC9
+  usecase "Create Course" as UC10
+  usecase "Manage Course Content" as UC11
+  usecase "Grade Submissions" as UC12
+  usecase "Manage Users" as UC13
+  usecase "Manage Courses" as UC14
+  usecase "Generate Reports" as UC15
+  usecase "Manage Address" as UC16
+  usecase "View Notifications" as UC17
+  usecase "Manage Vouchers" as UC18
+  usecase "Categorize Courses" as UC19
+  usecase "Track Lesson Progress" as UC20
+}
+
+user --> UC1
+user --> UC2
+user --> UC3
+user --> UC4
+user --> UC5
+user --> UC6
+user --> UC7
+user --> UC8
+user --> UC9
+user --> UC16
+user --> UC17
+user --> UC20
+
+instructor --> UC2
+instructor --> UC10
+instructor --> UC11
+instructor --> UC12
+instructor --> UC18
+instructor --> UC19
+
+admin --> UC2
+admin --> UC13
+admin --> UC14
+admin --> UC15
+admin --> UC18
+admin --> UC19
+
+@enduml

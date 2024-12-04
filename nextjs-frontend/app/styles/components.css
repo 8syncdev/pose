@@ -1,0 +1,211 @@
+@tailwind utilities;
+
+/* utilities for components  */
+
+@layer utilities {
+    /* Buttons */
+    .btn {
+        @apply inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-[hsl(var(--background))] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--ring))] focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 px-4 py-2;
+    }
+
+    .btn-primary {
+        @apply bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] hover:bg-[hsl(var(--primary)_/_0.8)] shadow-sm;
+    }
+
+    .btn-secondary {
+        @apply bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] hover:bg-[hsl(var(--secondary)_/_0.8)] shadow-sm;
+    }
+
+    .btn-outline {
+        @apply border border-[hsl(var(--input))] bg-[hsl(var(--background))] hover:bg-[hsl(var(--accent)_/_0.8)] hover:text-[hsl(var(--accent-foreground))] shadow-sm;
+    }
+
+    .btn-ghost {
+        @apply hover:bg-[hsl(var(--accent)_/_0.8)] hover:text-[hsl(var(--accent-foreground))];
+    }
+
+    .btn-success {
+        @apply bg-[hsl(var(--success))] text-white hover:bg-[hsl(var(--success)_/_0.8)] shadow-sm;
+    }
+
+    .btn-danger {
+        @apply bg-[hsl(var(--danger))] text-white hover:bg-[hsl(var(--danger)_/_0.8)] shadow-sm;
+    }
+
+    .btn-warning {
+        @apply bg-[hsl(var(--warning))] text-white hover:bg-[hsl(var(--warning)_/_0.8)] shadow-sm;
+    }
+
+    .btn-info {
+        @apply bg-[hsl(var(--info))] text-white hover:bg-[hsl(var(--info)_/_0.8)] shadow-sm;
+    }
+
+    .btn-sm {
+        @apply h-8 rounded-md px-3 text-xs;
+    }
+
+    .btn-lg {
+        @apply h-11 rounded-md px-8 text-base;
+    }
+
+    .btn-icon {
+        @apply h-9 w-9;
+    }
+
+    /* Form Controls */
+    .input {
+        @apply flex h-10 w-full rounded-md border border-[hsl(var(--input))] bg-[hsl(var(--background))] px-3 py-2 text-sm ring-offset-[hsl(var(--background))] file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-[hsl(var(--muted-foreground))] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--ring))] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 shadow-sm;
+    }
+
+    .input-sm {
+        @apply h-8 text-xs px-2;
+    }
+
+    .input-lg {
+        @apply h-12 text-base px-4;
+    }
+
+    .textarea {
+        @apply flex min-h-[80px] w-full rounded-md border border-[hsl(var(--input))] bg-[hsl(var(--background))] px-3 py-2 text-sm ring-offset-[hsl(var(--background))] placeholder:text-[hsl(var(--muted-foreground))] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--ring))] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 shadow-sm;
+    }
+
+    .select {
+        @apply flex h-10 w-full items-center justify-between rounded-md border border-[hsl(var(--input))] bg-[hsl(var(--background))] px-3 py-2 text-sm ring-offset-[hsl(var(--background))] placeholder:text-[hsl(var(--muted-foreground))] focus:outline-none focus:ring-2 focus:ring-[hsl(var(--ring))] focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 shadow-sm;
+    }
+
+    .checkbox {
+        @apply h-4 w-4 rounded border border-[hsl(var(--primary))] text-[hsl(var(--primary))] ring-offset-[hsl(var(--background))] focus:outline-none focus:ring-2 focus:ring-[hsl(var(--ring))] focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+    }
+
+    .radio {
+        @apply h-4 w-4 rounded-full border border-[hsl(var(--primary))] text-[hsl(var(--primary))] ring-offset-[hsl(var(--background))] focus:outline-none focus:ring-2 focus:ring-[hsl(var(--ring))] focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+    }
+
+    /* Cards */
+    .card {
+        @apply rounded-lg border bg-[hsl(var(--card))] text-[hsl(var(--card-foreground))] shadow;
+    }
+
+    .card-header {
+        @apply flex flex-col space-y-1.5 p-6;
+    }
+
+    .card-content {
+        @apply p-6 pt-0;
+    }
+
+    .card-footer {
+        @apply flex items-center p-6 pt-0;
+    }
+
+    .card-hover {
+        @apply hover:shadow-lg transition-shadow duration-200;
+    }
+
+    .card-compact {
+        @apply p-4;
+    }
+
+    /* Navigation */
+    .nav-link {
+        @apply inline-flex items-center text-sm font-medium transition-colors hover:text-[hsl(var(--primary)_/_0.8)];
+    }
+
+    .nav-link-active {
+        @apply text-[hsl(var(--primary))] font-semibold;
+    }
+
+    .nav-item {
+        @apply px-4 py-2 rounded-md hover:bg-[hsl(var(--accent)_/_0.8)] hover:text-[hsl(var(--accent-foreground))] transition-colors;
+    }
+
+    .nav-menu {
+        @apply flex flex-col space-y-2;
+    }
+
+    /* Badges */
+    .badge {
+        @apply inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-[hsl(var(--ring))] focus:ring-offset-2 shadow-sm bg-[hsl(var(--background))];
+    }
+
+    .badge-primary {
+        @apply bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] hover:bg-[hsl(var(--primary)_/_0.8)];
+    }
+
+    .badge-secondary {
+        @apply bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] hover:bg-[hsl(var(--secondary)_/_0.8)];
+    }
+
+    .badge-outline {
+        @apply border-[hsl(var(--input))] text-[hsl(var(--foreground))];
+    }
+
+    .badge-success {
+        @apply bg-[hsl(var(--success))] text-white border-transparent;
+    }
+
+    .badge-warning {
+        @apply bg-[hsl(var(--warning))] text-white border-transparent;
+    }
+
+    .badge-danger {
+        @apply bg-[hsl(var(--danger))] text-white border-transparent;
+    }
+
+    /* Alerts */
+    .alert {
+        @apply relative w-full rounded-lg border p-4 shadow-sm bg-[hsl(var(--background))];
+    }
+
+    .alert-info {
+        @apply bg-[hsl(var(--info))] text-white border-transparent;
+    }
+
+    .alert-success {
+        @apply bg-[hsl(var(--success))] text-white border-transparent;
+    }
+
+    .alert-warning {
+        @apply bg-[hsl(var(--warning))] text-white border-transparent;
+    }
+
+    .alert-danger {
+        @apply bg-[hsl(var(--danger))] text-white border-transparent;
+    }
+
+    /* Tables */
+    .table {
+        @apply w-full text-sm bg-[hsl(var(--background))];
+    }
+
+    .table-header {
+        @apply bg-[hsl(var(--muted))] text-[hsl(var(--muted-foreground))];
+    }
+
+    .table-row {
+        @apply border-b hover:bg-[hsl(var(--muted)_/_0.8)];
+    }
+
+    .table-cell {
+        @apply px-4 py-2;
+    }
+
+    /* Lists */
+    .list {
+        @apply space-y-2;
+    }
+
+    .list-item {
+        @apply flex items-center space-x-2 bg-[hsl(var(--background))];
+    }
+
+    .list-disc {
+        list-style-type: disc;
+        list-style-position: inside;
+    }
+
+    .list-decimal {
+        list-style-type: decimal;
+        list-style-position: inside;
+    }
+}

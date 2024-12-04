@@ -1,0 +1,98 @@
+@startuml
+
+' Set page orientation to landscape
+skinparam pageOrientation landscape
+
+' Set page size to A4
+skinparam pageFormat A4
+
+left to right direction
+skinparam actorStyle awesome
+
+' Actors
+actor "User" as user
+actor "Instructor" as instructor
+actor "Admin" as admin
+
+' Actor inheritance
+instructor --|> user
+admin --|> user
+
+' System boundary
+rectangle "Online Learning Platform" {
+  ' User use cases
+  package "User Management" {
+    usecase "Register" as UC1
+    usecase "Login" as UC2
+    usecase "Manage Address" as UC16
+    usecase "View Notifications" as UC17
+  }
+
+  package "Course Interaction" {
+    usecase "Browse Courses" as UC3
+    usecase "Enroll in Course" as UC4
+    usecase "View Lessons" as UC5
+    usecase "Complete Exercises" as UC6
+    usecase "Submit Reviews" as UC7
+    usecase "Track Lesson Progress" as UC20
+  }
+
+  package "Payment and Subscription" {
+    usecase "Make Payment" as UC8
+    usecase "Manage Subscription" as UC9
+  }
+
+  ' Instructor use cases
+  package "Course Management" {
+    usecase "Create Course" as UC10
+    usecase "Manage Course Content" as UC11
+    usecase "Grade Submissions" as UC12
+    usecase "Manage Vouchers" as UC18
+    usecase "Categorize Courses" as UC19
+  }
+
+  ' Admin use cases
+  package "Administration" {
+    usecase "Manage Users" as UC13
+    usecase "Manage Courses" as UC14
+    usecase "Generate Reports" as UC15
+  }
+}
+
+' User relationships
+user --> UC1
+user --> UC2
+user --> UC3
+user --> UC4
+user --> UC5
+user --> UC6
+user --> UC7
+user --> UC8
+user --> UC9
+user --> UC16
+user --> UC17
+user --> UC20
+
+' Instructor relationships
+instructor --> UC10
+instructor --> UC11
+instructor --> UC12
+instructor --> UC18
+instructor --> UC19
+
+' Admin relationships
+admin --> UC13
+admin --> UC14
+admin --> UC15
+
+' Extensions and inclusions
+UC4 .> UC8 : <<extend>>
+UC9 .> UC8 : <<extend>>
+UC4 ..> UC2 : <<include>>
+UC10 ..> UC2 : <<include>>
+
+' Additional relationships
+UC3 -- UC19 : categorized by
+UC5 -- UC20 : tracks progress
+
+@enduml
