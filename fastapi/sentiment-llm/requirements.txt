@@ -1,0 +1,15 @@
+# Backend
+fastapi
+sqlmodel
+
+# LLM
+langchain # LLM
+langchain-ollama # LLM
+langchain-community # Runnable
+langchain-experimental # Runnable
+# API Key
+# langchain-openai # LLM
+langchain-mistralai # LLM
+
+# Postgres
+psycopg2-binary
