@@ -2,8 +2,7 @@
 
 ## 🌐 Thông Tin Liên Hệ
 - **Website**: [8syncdev.com](https://8syncdev.com)
-- **YouTube**: [8 sync dev](https://youtube.com/@8syncdev)
-- **GitHub**: [8 sync dev](https://github.com/8-sync-dev)
+- **GitHub**: [8 sync dev](https://github.com/8syncdev)
 - **Tác giả**: Nguyễn Phương Anh Tú (Leader)
 - **Liên hệ**: 0767449819
 - **Team**: Đinh Thành Đức (Co-Leader), Phạm Vũ Bảo Nhân (Co-Leader)
@@ -34,7 +33,7 @@ graph TB
     MS4 --> DB4[(Exercise DB)]
     MS5 --> DB5[(Enrollment DB)]
     
-    MS1 -.-> Cache[Redis Cache]
+    MS1 -.-> Cache[SSR Nextjs]
     MS2 -.-> Cache
     MS3 -.-> Cache
     MS4 -.-> Cache
