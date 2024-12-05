@@ -33,7 +33,7 @@ graph TB
     MS4 --> DB4[(Exercise DB)]
     MS5 --> DB5[(Enrollment DB)]
     
-    MS1 -.-> Cache[Redis Cache]
+    MS1 -.-> Cache[SSR Nextjs]
     MS2 -.-> Cache
     MS3 -.-> Cache
     MS4 -.-> Cache
