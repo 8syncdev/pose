@@ -5,7 +5,7 @@
 - **GitHub**: [8 sync dev](https://github.com/8syncdev)
 - **Tác giả**: Nguyễn Phương Anh Tú (Leader)
 - **Liên hệ**: 0767449819
-- **Team**: Đinh Thành Đức (Co-Leader), Phạm Vũ Bảo Nhân (Co-Leader)
+
 ## 📋 Mục Lục
 1. [Kiến Trúc Hệ Thống](#kiến-trúc-hệ-thống)
 2. [Backend Service](#backend-service)
